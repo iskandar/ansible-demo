@@ -1,0 +1,40 @@
+
+
+#
+#- name: Gather info about servers
+#  gather_facts: True
+#  hosts: all
+#  tasks:
+#    - name: Get facts about servers
+#      local_action:
+#        module: rax_facts
+#        id: "{{ rax_hostid }}"
+#    - name: Map some facts
+#      set_fact:
+#        ansible_ssh_host: "{{ ansible_default_ipv4.address }}"
+#        host_id: "{{ rax_hostid }}"
+
+- name: Provision Web Nodes
+  gather_facts: true
+  hosts:
+    - all
+  vars:
+    build_number: 1
+    deploy_number: 1
+    contract_id: 1
+  roles:
+    -
+      role: base
+    -
+      role: yatesr.timezone
+    -
+      role: WebbyLab.nginx-proxy
+      nginx_proxy_listen_port: 80
+      nginx_proxy_hostname: _
+#      nginx_proxy_static_locations:
+#        - {location: '/static', root: '/home/web-app/web-app/public', try_files: '/index.html'}
+#        - {location: '/assets', alias: '/home/web-app/web-app/assets'}
+      nginx_proxy_pass_locations: [{location: '/', proxy_pass: 'http://127.0.0.1:8180'}]
+    -
+      role: alban.andrieu.jboss
+

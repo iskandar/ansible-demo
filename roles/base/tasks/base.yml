@@ -1,0 +1,5 @@
+---
+# Set up base items like:
+# - DNS search server
+# - Server hardening
+# - Common SSH keys or PAM/LDAP/AD authentication

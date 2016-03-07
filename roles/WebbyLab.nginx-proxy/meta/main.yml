@@ -1,0 +1,14 @@
+---
+galaxy_info:
+  author: WebbyLab
+  description: Ansible role for nginx setup as reverse proxy on Ubuntu server
+  company: WebbyLab
+  license: MIT
+  min_ansible_version: 1.5
+  platforms:
+  - name: Ubuntu
+    versions:
+    - all
+  galaxy_tags:
+  - system
+dependencies: []

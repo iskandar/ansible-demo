@@ -1,0 +1,13 @@
+- name: Create DNS Records
+  hosts: localhost
+  gather_facts: False
+  tasks:
+    - name: Create A record
+      local_action:
+        module: rax_dns_record
+        domain: "{{ base_name }}"
+        name: "{{ name }}.{{ base_name }}"
+        data: "{{ ip }}"
+        type: A
+        ttl: 300
+      register: a_record
