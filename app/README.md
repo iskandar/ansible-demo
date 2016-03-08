@@ -102,8 +102,8 @@ Investigate the Server Console Output
 You should see messages similar to the following:
 
     INFO  [org.jboss.as.server] (management-handler-thread - 9) JBAS018559: Deployed "test.war"
-    INFO  [ansible-demo.controller.MemberRegistration] (http--127.0.0.1-8080-2) Registering Jane Doe
-    INFO  [ansible-demo.test.MemberRegistrationTest] (http--127.0.0.1-8080-2) Jane Doe was persisted with id 1
+    INFO  [ansibledemo.controller.MemberRegistration] (http--127.0.0.1-8080-2) Registering Jane Doe
+    INFO  [ansibledemo.test.MemberRegistrationTest] (http--127.0.0.1-8080-2) Jane Doe was persisted with id 1
     INFO  [org.jboss.weld.deployer] (MSC service thread 1-6) JBAS016009: Stopping weld service for deployment test.war
     INFO  [org.jboss.as.jpa] (MSC service thread 1-1) JBAS011403: Stopping Persistence Unit Service 'test.war#primary'
     INFO  [org.hibernate.tool.hbm2ddl.SchemaExport] (MSC service thread 1-1) HHH000227: Running hbm2ddl schema export

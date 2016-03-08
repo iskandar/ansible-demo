@@ -14,35 +14,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package ansible-demo.util;
+package ansibledemo.rest;
 
-import java.util.logging.Logger;
-
-import javax.enterprise.context.RequestScoped;
-import javax.enterprise.inject.Produces;
-import javax.enterprise.inject.spi.InjectionPoint;
-import javax.faces.context.FacesContext;
-import javax.persistence.EntityManager;
-import javax.persistence.PersistenceContext;
+import javax.ws.rs.ApplicationPath;
+import javax.ws.rs.core.Application;
 
 /**
- * This class uses CDI to alias Java EE resources, such as the persistence context, to CDI beans
+ * A class extending {@link Application} and annotated with @ApplicationPath is the Java EE 6 "no XML" approach to activating
+ * JAX-RS.
  * 
  * <p>
- * Example injection on a managed bean field:
+ * Resources are served relative to the servlet path specified in the {@link ApplicationPath} annotation.
  * </p>
- * 
- * <pre>
- * &#064;Inject
- * private EntityManager em;
- * </pre>
  */
-public class WebResources {
-
-    @Produces
-    @RequestScoped
-    public FacesContext produceFacesContext() {
-        return FacesContext.getCurrentInstance();
-    }
-
+@ApplicationPath("/rest")
+public class JaxRsActivator extends Application {
+    /* class body intentionally left blank */
 }

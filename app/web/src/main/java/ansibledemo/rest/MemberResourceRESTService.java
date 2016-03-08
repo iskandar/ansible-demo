@@ -14,7 +14,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package ansible-demo.rest;
+package ansibledemo.rest;
 
 import java.util.HashMap;
 import java.util.HashSet;
@@ -40,9 +40,9 @@ import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
-import ansible-demo.data.MemberRepository;
-import ansible-demo.model.Member;
-import ansible-demo.service.MemberRegistration;
+import ansibledemo.data.MemberRepository;
+import ansibledemo.model.Member;
+import ansibledemo.service.MemberRegistration;
 
 /**
  * JAX-RS Example

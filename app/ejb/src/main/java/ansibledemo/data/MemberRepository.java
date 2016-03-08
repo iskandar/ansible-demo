@@ -14,7 +14,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package ansible-demo.data;
+package ansibledemo.data;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
@@ -24,7 +24,7 @@ import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Root;
 import java.util.List;
 
-import ansible-demo.model.Member;
+import ansibledemo.model.Member;
 
 @ApplicationScoped
 public class MemberRepository {

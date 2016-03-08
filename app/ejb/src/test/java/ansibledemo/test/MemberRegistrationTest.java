@@ -14,7 +14,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package ansible-demo.test;
+package ansibledemo.test;
 
 import static org.junit.Assert.assertNotNull;
 
@@ -24,9 +24,9 @@ import javax.inject.Inject;
 
 import org.jboss.arquillian.container.test.api.Deployment;
 import org.jboss.arquillian.junit.Arquillian;
-import ansible-demo.model.Member;
-import ansible-demo.service.MemberRegistration;
-import ansible-demo.util.Resources;
+import ansibledemo.model.Member;
+import ansibledemo.service.MemberRegistration;
+import ansibledemo.util.Resources;
 import org.jboss.shrinkwrap.api.Archive;
 import org.jboss.shrinkwrap.api.ShrinkWrap;
 import org.jboss.shrinkwrap.api.asset.EmptyAsset;
