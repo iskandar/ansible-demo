@@ -46,6 +46,8 @@ resources:
       metadata:
         parent_stack_id: { get_param: "OS::stack_id" }
         group_name: { get_param: "OS::stack_name" }
+        contract_id: { get_param: contract_id }
+        environment: "test"
 
   asg:
     type: Rackspace::AutoScale::Group
@@ -64,7 +66,6 @@ resources:
           group_name: { get_param: "OS::stack_name" }
           contract_id: { get_param: contract_id }
           environment: "test"
-          role: "web"
       launchConfiguration:
         type: launch_server
         args:
@@ -75,7 +76,7 @@ resources:
           server:
             name:
               str_replace:
-                template: '%name%-node'
+                template: '%name%'
                 params:
                   '%name%': { get_param: "OS::stack_name" }
             # WARNING: Hardcoded flavor and image below!
@@ -90,11 +91,6 @@ resources:
                   package_update: true
                   packages:
                     - curl
-                    - git
-                    - jq
-                    - unzip
-                    - python-software-properties
-                    - debconf-utils
 
                   output : { all : '| tee -a /var/log/cloud-init-output.log' }
 
@@ -105,22 +101,8 @@ resources:
                       content: |
                         #!/bin/bash -ex
 
-                        # Mount metadata
-                        mkdir /tmp/config
-                        mount /dev/disk/by-label/config-2 /tmp/config
-
                         # Get public IP address (from a reputable source)
                         PUBLIC_IP=$(curl http://checkip.amazonaws.com)
-
-                        # Write environment file
-                        APP_DIR=/etc/demo-app
-                        mkdir -p $APP_DIR
-                        ENV_FILE=${APP_DIR}/ENVIRONMENT
-
-                        echo 'export GROUP_NAME=$group_name' > $ENV_FILE
-                        echo 'export PORT=80' >> $ENV_FILE
-                        echo "export PUBLIC_IP=$PUBLIC_IP" >> $ENV_FILE
-                        echo 'export CONTRACT_ID=$contract_id' >> $ENV_FILE
 
                         # Send a notification to our URL
                         curl -vv "$post_init_notification_url&NODE_IP=${PUBLIC_IP}&CONTRACT_ID=$contract_id&NODE_NAME=$(hostname)"
