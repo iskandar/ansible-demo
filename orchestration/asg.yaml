@@ -32,17 +32,21 @@ resources:
             '%name%': { get_param: "OS::stack_name" }
       nodes: []
       healthMonitor:
-        type: CONNECT
+        type: HTTP
         delay: 10
-        timeout: 2
+        timeout: 5
         attemptsBeforeDeactivation: 2
+        path: "/"
+        statusRegex: "^[23][0-9][0-9]$"
+        bodyRegex: "."
       port: 80
       protocol: HTTP
       algorithm: ROUND_ROBIN
       contentCaching: DISABLED
+      sessionPersistence: HTTP_COOKIE
       virtualIps:
-      - type: PUBLIC
-        ipVersion: IPV4
+        - type: PUBLIC
+          ipVersion: IPV4
       metadata:
         parent_stack_id: { get_param: "OS::stack_id" }
         group_name: { get_param: "OS::stack_name" }
