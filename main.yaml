@@ -1,19 +1,4 @@
 
-
-#
-#- name: Gather info about servers
-#  gather_facts: True
-#  hosts: all
-#  tasks:
-#    - name: Get facts about servers
-#      local_action:
-#        module: rax_facts
-#        id: "{{ rax_hostid }}"
-#    - name: Map some facts
-#      set_fact:
-#        ansible_ssh_host: "{{ ansible_default_ipv4.address }}"
-#        host_id: "{{ rax_hostid }}"
-
 - name: Provision Web Nodes
   gather_facts: true
   hosts:

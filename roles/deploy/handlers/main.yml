@@ -1,0 +1,5 @@
+---
+# Handlers for web
+
+#- name: restart SERVICE
+#  service: name=SERVICE state=restarted

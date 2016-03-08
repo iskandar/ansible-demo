@@ -1,0 +1,20 @@
+---
+#
+
+- name: Ensure we have a 'target' directory
+  file: path=/usr/share/jboss-as/standalone/deployments state=directory mode=0755
+
+- name: Push index file
+  template:
+    src: index.html
+    dest: /usr/share/jboss-as/welcome-content/index.html
+
+- name: Push EAR file
+  copy:
+    src: app-ear.ear
+    dest: /usr/share/jboss-as/standalone/deployments/app-ear.ear
+
+- name: Wait for server
+  wait_for: port=8180 delay=10 timeout=120
+
+#- name: Run smoke test
