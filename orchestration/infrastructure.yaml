@@ -1,0 +1,394 @@
+#
+
+heat_template_version: 2013-05-23
+
+description: Rackspace Axios Demo
+
+parameters:
+  environment_name:
+    label: Environment Name
+    description: The Environment name
+    type: string
+
+  group_id:
+    label: Group ID
+    description: Unique Group ID
+    type: string
+
+  load_balancer_id:
+    label: Dummy LB ID
+    description: Will be ignored. Exists to main param parity with 'rcv3' version of this template.
+    type: string
+
+  post_init_notification_url:
+    label: Post-initialisation Notification URL
+    description: URL to post to once a server has initialised
+    type: string
+
+  ssh_keypair_name:
+    label: SSH Key Pair
+    description: Name of an existing key pair to use for all servers
+    type: string
+    default: ""
+
+resources:
+  load_balancer:
+    type: "Rackspace::Cloud::LoadBalancer"
+    properties:
+      name:
+        str_replace:
+          template: '%name%-lb'
+          params:
+            '%name%': { get_param: "OS::stack_name" }
+      nodes: []
+      healthMonitor:
+        type: HTTP
+        delay: 10
+        timeout: 5
+        attemptsBeforeDeactivation: 2
+        path: "/"
+        statusRegex: "^[23][0-9][0-9]$"
+        bodyRegex: "."
+      port: 80
+      protocol: HTTP
+      algorithm: ROUND_ROBIN
+      contentCaching: DISABLED
+      sessionPersistence: HTTP_COOKIE
+      virtualIps:
+        - type: PUBLIC
+          ipVersion: IPV4
+      metadata:
+        parent_stack_id: { get_param: "OS::stack_id" }
+        group_name: { get_param: "OS::stack_name" }
+        group_id: { get_param: group_id }
+        environment: { get_param: environment_name }
+
+  asg:
+    type: Rackspace::AutoScale::Group
+    properties:
+      groupConfiguration:
+        name:
+          str_replace:
+            template: '%name%-asg'
+            params:
+              '%name%': { get_param: "OS::stack_name" }
+        cooldown: 60
+        minEntities: 1
+        maxEntities: 16
+        metadata:
+          parent_stack_id: { get_param: "OS::stack_id" }
+          group_name: { get_param: "OS::stack_name" }
+          group_id: { get_param: group_id }
+          environment: { get_param: environment_name }
+      launchConfiguration:
+        type: launch_server
+        args:
+          loadBalancers:
+            -
+              loadBalancerId: { get_resource: load_balancer }
+              port: 80
+          server:
+            name:
+              str_replace:
+                template: '%name%'
+                params:
+                  '%name%': { get_param: "OS::stack_name" }
+            # WARNING: Hardcoded flavor and image below!
+            flavorRef: 3
+            imageRef: 09de0a66-3156-48b4-90a5-1cf25a905207
+            key_name: { get_param: ssh_keypair_name }
+            diskConfig: MANUAL
+            user_data:
+              str_replace:
+                template: |
+                  #cloud-config
+                  package_update: true
+                  packages:
+                    - curl
+                  output:
+                    all: '| tee -a /var/log/cloud-init-output.log'
+                  write_files:
+                    #  Bootstrap script
+                    - path: /tmp/heat-bootstrap.sh
+                      permissions: '0500'
+                      content: |
+                        #!/bin/bash -ex
+
+                        # Build a query string
+                        QS=""
+                        QS=${QS}'&'GROUP_ID=%group_id%
+                        QS=${QS}'&'ENVIRONMENT_NAME=%environment_name%
+                        QS=${QS}'&'NODE_IP=$(curl http://checkip.amazonaws.com)
+                        QS=${QS}'&'NODE_NAME=$(hostname)
+
+                        # Send a notification to our URL
+                        curl -vv "%post_init_notification_url%&${QS}"
+                  runcmd:
+                    - /tmp/heat-bootstrap.sh
+                params:
+                  "%group_name%": { get_param: "OS::stack_name" }
+                  "%post_init_notification_url%": { get_param: post_init_notification_url }
+                  "%group_id%": { get_param: group_id }
+                  "%environment_name%": { get_param: environment_name }
+            networks:
+              - uuid: 11111111-1111-1111-1111-111111111111
+              - uuid: 00000000-0000-0000-0000-000000000000
+            metadata:
+              parent_stack_id: { get_param: "OS::stack_id" }
+              group_name: { get_param: "OS::stack_name" }
+              group_id: { get_param: group_id }
+              environment: { get_param: environment_name }
+
+  # Scaling policies and webhooks
+  scale-to-00:
+    type: Rackspace::AutoScale::ScalingPolicy
+    properties:
+      group: {get_resource: asg}
+      name: scale-to-00
+      desiredCapacity: 0
+      cooldown: 59
+      type: webhook
+
+  scale-to-00-webhook:
+    type: Rackspace::AutoScale::WebHook
+    properties:
+      policy: {get_resource: scale-to-00}
+      name: scale-to-00-webhook
+
+  scale-to-01:
+    type: Rackspace::AutoScale::ScalingPolicy
+    properties:
+      group: {get_resource: asg}
+      name: scale-to-01
+      desiredCapacity: 1
+      cooldown: 59
+      type: webhook
+
+  scale-to-01-webhook:
+    type: Rackspace::AutoScale::WebHook
+    properties:
+      policy: {get_resource: scale-to-01}
+      name: scale-to-01-webhook
+
+  scale-to-02:
+    type: Rackspace::AutoScale::ScalingPolicy
+    properties:
+      group: {get_resource: asg}
+      name: scale-to-02
+      desiredCapacity: 2
+      cooldown: 59
+      type: webhook
+
+  scale-to-02-webhook:
+    type: Rackspace::AutoScale::WebHook
+    properties:
+      policy: {get_resource: scale-to-02}
+      name: scale-to-02-webhook
+
+  scale-to-04:
+    type: Rackspace::AutoScale::ScalingPolicy
+    properties:
+      group: {get_resource: asg}
+      name: scale-to-04
+      desiredCapacity: 4
+      cooldown: 59
+      type: webhook
+
+  scale-to-04-webhook:
+    type: Rackspace::AutoScale::WebHook
+    properties:
+      policy: {get_resource: scale-to-04}
+      name: scale-to-04-webhook
+
+  scale-to-08:
+    type: Rackspace::AutoScale::ScalingPolicy
+    properties:
+      group: {get_resource: asg}
+      name: scale-to-08
+      desiredCapacity: 8
+      cooldown: 59
+      type: webhook
+
+  scale-to-08-webhook:
+    type: Rackspace::AutoScale::WebHook
+    properties:
+      policy: {get_resource: scale-to-08}
+      name: scale-to-08-webhook
+
+  scale-up-01:
+    type: Rackspace::AutoScale::ScalingPolicy
+    properties:
+      group: {get_resource: asg}
+      name: scale-up-01
+      change: 1
+      cooldown: 59
+      type: webhook
+
+  scale-up-01-webhook:
+    type: Rackspace::AutoScale::WebHook
+    properties:
+      policy: {get_resource: scale-up-01}
+      name: scale-up-01-webhook
+
+  scale-up-25pc:
+    type: Rackspace::AutoScale::ScalingPolicy
+    properties:
+      group: {get_resource: asg}
+      name: scale-up-25pc
+      changePercent: 25
+      cooldown: 59
+      type: webhook
+
+  scale-up-25pc-webhook:
+    type: Rackspace::AutoScale::WebHook
+    properties:
+      policy: {get_resource: scale-up-25pc}
+      name: scale-up-25pc-webhook
+
+  scale-up-50pc:
+    type: Rackspace::AutoScale::ScalingPolicy
+    properties:
+      group: {get_resource: asg}
+      name: scale-up-50pc
+      changePercent: 50
+      cooldown: 59
+      type: webhook
+
+  scale-up-50pc-webhook:
+    type: Rackspace::AutoScale::WebHook
+    properties:
+      policy: {get_resource: scale-up-50pc}
+      name: scale-up-50pc-webhook
+
+  scale-up-75pc:
+    type: Rackspace::AutoScale::ScalingPolicy
+    properties:
+      group: {get_resource: asg}
+      name: scale-up-75pc
+      changePercent: 75
+      cooldown: 59
+      type: webhook
+
+  scale-up-75pc-webhook:
+    type: Rackspace::AutoScale::WebHook
+    properties:
+      policy: {get_resource: scale-up-75pc}
+      name: scale-up-75pc-webhook
+
+  scale-up-100pc:
+    type: Rackspace::AutoScale::ScalingPolicy
+    properties:
+      group: {get_resource: asg}
+      name: scale-up-100pc
+      changePercent: 100
+      cooldown: 59
+      type: webhook
+
+  scale-up-100pc-webhook:
+    type: Rackspace::AutoScale::WebHook
+    properties:
+      policy: {get_resource: scale-up-100pc}
+      name: scale-up-100pc-webhook
+
+  scale-up-200pc:
+    type: Rackspace::AutoScale::ScalingPolicy
+    properties:
+      group: {get_resource: asg}
+      name: scale-up-200pc
+      changePercent: 200
+      cooldown: 59
+      type: webhook
+
+  scale-up-200pc-webhook:
+    type: Rackspace::AutoScale::WebHook
+    properties:
+      policy: {get_resource: scale-up-200pc}
+      name: scale-up-200pc-webhook
+
+  scale-up-300pc:
+    type: Rackspace::AutoScale::ScalingPolicy
+    properties:
+      group: {get_resource: asg}
+      name: scale-up-300pc
+      changePercent: 300
+      cooldown: 59
+      type: webhook
+
+  scale-up-300pc-webhook:
+    type: Rackspace::AutoScale::WebHook
+    properties:
+      policy: {get_resource: scale-up-300pc}
+      name: scale-up-300pc-webhook
+
+  scale-down-01:
+    type: Rackspace::AutoScale::ScalingPolicy
+    properties:
+      group: {get_resource: asg}
+      name: scale-down-01
+      change: -1
+      cooldown: 59
+      type: webhook
+
+  scale-down-01-webhook:
+    type: Rackspace::AutoScale::WebHook
+    properties:
+      policy: {get_resource: scale-down-01}
+      name: scale-down-01-webhook
+
+  scale-down-25pc:
+    type: Rackspace::AutoScale::ScalingPolicy
+    properties:
+      group: {get_resource: asg}
+      name: scale-down-25pc
+      changePercent: -25
+      cooldown: 59
+      type: webhook
+
+  scale-down-25pc-webhook:
+    type: Rackspace::AutoScale::WebHook
+    properties:
+      policy: {get_resource: scale-down-25pc}
+      name: scale-down-25pc-webhook
+
+  scale-down-50pc:
+    type: Rackspace::AutoScale::ScalingPolicy
+    properties:
+      group: {get_resource: asg}
+      name: scale-down-50pc
+      changePercent: -50
+      cooldown: 59
+      type: webhook
+
+  scale-down-50pc-webhook:
+    type: Rackspace::AutoScale::WebHook
+    properties:
+      policy: {get_resource: scale-down-50pc}
+      name: scale-down-50pc-webhook
+
+  scale-down-75pc:
+    type: Rackspace::AutoScale::ScalingPolicy
+    properties:
+      group: {get_resource: asg}
+      name: scale-down-75pc
+      changePercent: -75
+      cooldown: 59
+      type: webhook
+
+  scale-down-75pc-webhook:
+    type: Rackspace::AutoScale::WebHook
+    properties:
+      policy: {get_resource: scale-down-75pc}
+      name: scale-down-75pc-webhook
+
+outputs:
+  environment_name:
+    description: The Environment Name
+    value: { get_param: environment_name }
+
+  group_id:
+    description: The Group ID
+    value: { get_param: group_id }
+
+  lb_public_ip:
+    description: Public IP of the load balancer
+    value: {get_attr: [load_balancer, PublicIp]}
