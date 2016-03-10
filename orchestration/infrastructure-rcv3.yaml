@@ -6,6 +6,16 @@ heat_template_version: 2013-05-23
 description: Rackspace Axios Demo
 
 parameters:
+  credentials_id:
+    label: Credentials ID
+    description: The ID for the credentials used to create this stack
+    type: string
+
+  api_key_id:
+    label: API key ID
+    description: The ID for the API key used to create this stack
+    type: string
+
   environment_name:
     label: Environment Name
     description: The Environment name
@@ -49,8 +59,10 @@ resources:
         metadata:
           parent_stack_id: { get_param: "OS::stack_id" }
           group_name: { get_param: "OS::stack_name" }
-          group_id: { get_param: group_id }
+          credentials_id: { get_param: credentials_id }
+          api_key_id: { get_param: api_key_id }
           environment: { get_param: environment_name }
+          group_id: { get_param: group_id }
       launchConfiguration:
         type: launch_server
         args:
@@ -92,8 +104,10 @@ resources:
 
                         # Build a query string
                         QS=""
-                        QS=${QS}'&'GROUP_ID=%group_id%
+                        QS=${QS}'&'CREDENTIALS_ID=%credentials_id%
+                        QS=${QS}'&'API_KEY_ID=%api_key_id%
                         QS=${QS}'&'ENVIRONMENT_NAME=%environment_name%
+                        QS=${QS}'&'GROUP_ID=%group_id%
                         QS=${QS}'&'NODE_IP=$(curl http://checkip.amazonaws.com)
                         QS=${QS}'&'NODE_NAME=$(hostname)
 
@@ -103,6 +117,8 @@ resources:
                     - /tmp/heat-bootstrap.sh
                 params:
                   "%group_name%": { get_param: "OS::stack_name" }
+                  "%credentials_id%": { get_param: credentials_id }
+                  "%api_key_id%": { get_param: api_key_id }
                   "%post_init_notification_url%": { get_param: post_init_notification_url }
                   "%group_id%": { get_param: group_id }
                   "%environment_name%": { get_param: environment_name }
@@ -113,8 +129,10 @@ resources:
             metadata:
               parent_stack_id: { get_param: "OS::stack_id" }
               group_name: { get_param: "OS::stack_name" }
-              group_id: { get_param: group_id }
+              credentials_id: { get_param: credentials_id }
+              api_key_id: { get_param: api_key_id }
               environment: { get_param: environment_name }
+              group_id: { get_param: group_id }
 
   # Scaling policies and webhooks
   scale-to-00:
@@ -358,6 +376,14 @@ resources:
       name: scale-down-75pc-webhook
 
 outputs:
+  credentials_id:
+    description: Credentials ID
+    value: { get_param: credentials_id }
+
+  api_key_id:
+    description: API Key ID
+    value: { get_param: api_key_id }
+
   environment_name:
     description: The Environment Name
     value: { get_param: environment_name }

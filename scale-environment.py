@@ -12,13 +12,13 @@ pyrax.set_credentials(os.environ.get('OS_USERNAME'), os.environ.get('OS_API_KEY'
 au = pyrax.autoscale
 
 # Consume our environment vars
-contract_id = os.environ.get('CONTRACT_ID', '')
+group_id = os.environ.get('GROUP_ID', '')
 policy_name = os.environ.get('POLICY_NAME', 'scale-to-02')
 
 # Try to find the ASG by naming convention.
 # This is brittle and we should be rummaging in the launch_configuration metadata
 filtered = (node for node in au.list() if
-            node.name == 'e' + contract_id + '-asg')
+            node.name == 'e' + group_id + '-asg')
 
 sg = None
 for asg in filtered:
