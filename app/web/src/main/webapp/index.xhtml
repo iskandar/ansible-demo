@@ -33,7 +33,10 @@
          <h2>Member Registration</h2>
          <p>Enforces annotation-based constraints defined on the model class.</p>
           <h3 style="color: red;">Sadly, this does not work behind a load balancer.</h3>
-          <p>This is because we are using the default in-memory database.</p>
+          <p>
+              This is because we are using the default in-memory database.
+              Sticky sessions help but the data tier is still not shared.
+          </p>
          <h:panelGrid columns="3" columnClasses="titleCell">
             <h:outputLabel for="name" value="Name:"/>
             <h:inputText id="name" value="#{newMember.name}" />
