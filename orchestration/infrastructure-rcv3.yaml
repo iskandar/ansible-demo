@@ -1,9 +1,9 @@
 #
 #
 
-heat_template_version: 2013-05-23
+heat_template_version: 2015-10-15
 
-description: Rackspace Axios Demo
+description: Rackspace RCv3 Demo
 
 parameters:
   credentials_id:
@@ -30,7 +30,10 @@ parameters:
     label: RackConnect v3 Load Balancer Pool ID
     description: The ID of the RCv3 Load Balancer Pool
     type: string
-    default: 37a4d4a8-bdbd-4f8f-84e5-630ea1572dcf
+    # LB ID
+    #default: 37a4d4a8-bdbd-4f8f-84e5-630ea1572dcf
+    # LB Pool ID
+    default: d01be237-d87c-40c0-8c34-b13aa0d9d1b7
 
   post_init_notification_url:
     label: Post-initialisation Notification URL
@@ -69,7 +72,7 @@ resources:
           loadBalancers:
             -
               loadBalancerId: { get_param: load_balancer_id }
-              type: "RackConnectV3"
+              "type": "RackConnect v3"
           server:
             name:
               str_replace:
@@ -123,9 +126,10 @@ resources:
                   "%group_id%": { get_param: group_id }
                   "%environment_name%": { get_param: environment_name }
             networks:
-              # Should be ServiceNet + one RCv3 network!
-              - uuid: 11111111-1111-1111-1111-111111111111
-              - uuid: 00000000-0000-0000-0000-000000000000
+              # Should be ServiceNet + one RCv3 Cloud Network
+              #- uuid: 00000000-0000-0000-0000-000000000000 # PublicNet
+              - uuid: 11111111-1111-1111-1111-111111111111 # ServiceNet
+              - uuid: 2b0a4cc8-12c0-4cb8-a167-e0e4820cb6a9
             metadata:
               parent_stack_id: { get_param: "OS::stack_id" }
               group_name: { get_param: "OS::stack_name" }
