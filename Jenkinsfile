@@ -3,7 +3,7 @@ node('linux') {
     stage 'Checkout'
 
     // Get some code from a GitHub repository
-    scm checkout
+    checkout scm
     
     // Mark the code build 'stage'....
     stage 'Build'
